@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<plugin name="Worker"
+        displayName="Fingerprint Worker Cassandra"
+        package="io.cloudine.rhq.plugins.worker"
+        description="Fingerprint Worker Cassandra 모니터링 플러그인"
+        version="0.0.1"
+        xmlns="urn:xmlns:rhq-plugin"
+        xmlns:c="urn:xmlns:rhq-configuration">
+
+    <server name="Worker" discovery="WorkerDiscovery" class="WorkerComponent"
+            description="Fingerprint Worker Cassandra"
+            supportsManualAdd="true">
+
+        <plugin-configuration>
+            <c:simple-property name="name"
+                               required="true"
+                               type="string"
+                               displayName="식별자명"
+                               description="식별자명 (모니터링 대상이 여러개 일때 이름을 변경합니다)"/>
+
+            <c:simple-property name="host"
+                               required="true"
+                               type="string"
+                               default="127.0.0.1"
+                               displayName="카산드라 주소"
+                               description="카산드라 주소"/>
+
+            <c:simple-property name="port"
+                               required="false"
+                               type="string"
+                               default="9042"
+                               displayName="카산드라 포트"
+                               description="카산드라 포트">
+                <c:constraint>
+                    <c:integer-constraint minimum="1" maximum="65535"/>
+                </c:constraint>
+            </c:simple-property>
+
+            <c:simple-property name="keyspace"
+                               required="true"
+                               type="string"
+                               default="test"
+                               displayName="연결할 Keyspace"
+                               description="연결할 Keyspace"/>
+
+            <c:simple-property name="username"
+                               required="false"
+                               default=""
+                               displayName="사용자명"
+                               description="카산드라 연결시 필요한 사용자명"/>
+
+            <c:simple-property name="password"
+                               required="false"
+                               default=""
+                               type="password"
+                               displayName="패스워드"
+                               description="카산드라 연결시 필요한 패스워드"/>
+        </plugin-configuration>
+
+        <metric displayName="Feature 파일의 개수"
+                property="count" measurementType="trendsup"
+                description="워커당 Feature 파일의 개수"/>
+
+        <metric displayName="총 Play Time"
+                property="playtime" units="milliseconds"
+                measurementType="trendsup"
+                description="총 Play Time"/>
+    </server>
+</plugin>
