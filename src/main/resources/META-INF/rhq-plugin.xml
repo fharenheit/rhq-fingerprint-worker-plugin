@@ -19,43 +19,17 @@
                                displayName="식별자명"
                                description="식별자명 (모니터링 대상이 여러개 일때 이름을 변경합니다)"/>
 
-            <c:simple-property name="host"
+            <c:simple-property name="pidfile"
                                required="true"
                                type="string"
-                               default="127.0.0.1"
-                               displayName="카산드라 주소"
-                               description="카산드라 주소"/>
+                               displayName="Process ID 파일의 절대 경로"
+                               description="Process ID 파일의 절대 경로"/>
 
-            <c:simple-property name="port"
-                               required="false"
-                               type="string"
-                               default="9042"
-                               displayName="카산드라 포트"
-                               description="카산드라 포트">
-                <c:constraint>
-                    <c:integer-constraint minimum="1" maximum="65535"/>
-                </c:constraint>
-            </c:simple-property>
-
-            <c:simple-property name="keyspace"
+            <c:simple-property name="propertiesfile"
                                required="true"
                                type="string"
-                               default="test"
-                               displayName="연결할 Keyspace"
-                               description="연결할 Keyspace"/>
-
-            <c:simple-property name="username"
-                               required="false"
-                               default=""
-                               displayName="사용자명"
-                               description="카산드라 연결시 필요한 사용자명"/>
-
-            <c:simple-property name="password"
-                               required="false"
-                               default=""
-                               type="password"
-                               displayName="패스워드"
-                               description="카산드라 연결시 필요한 패스워드"/>
+                               displayName="Process .properties 파일의 절대 경로"
+                               description="Process .properties 파일의 절대 경로"/>
         </plugin-configuration>
 
         <metric displayName="Feature 파일의 개수"
@@ -66,5 +40,15 @@
                 property="playtime" units="milliseconds"
                 measurementType="trendsup"
                 description="총 Play Time"/>
+
+        <metric displayName="CPU 사용량"
+                property="cpu"
+                measurementType="trendsup"
+                description="CPU 사용량"/>
+
+        <metric displayName="RAM 사용량"
+                property="ram"
+                measurementType="trendsup"
+                description="RAM 사용량"/>
     </server>
 </plugin>
