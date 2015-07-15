@@ -4,7 +4,7 @@
         displayName="Fingerprint Worker Cassandra"
         package="io.cloudine.rhq.plugins.worker"
         description="Fingerprint Worker Cassandra 모니터링 플러그인"
-        version="0.0.1"
+        version="0.0.3"
         xmlns="urn:xmlns:rhq-plugin"
         xmlns:c="urn:xmlns:rhq-configuration">
 
@@ -46,9 +46,9 @@
                 measurementType="trendsup"
                 description="CPU 사용량"/>
 
-        <metric displayName="RAM 사용량"
+        <metric displayName="VIRT RAM 사용량"
                 property="ram"
                 measurementType="trendsup"
-                description="RAM 사용량"/>
+                description="VIRT RAM 사용량"/>
     </server>
 </plugin>

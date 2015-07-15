@@ -8,6 +8,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hyperic.sigar.ProcCpu;
 import org.hyperic.sigar.ProcMem;
+import org.hyperic.sigar.Sigar;
 import org.rhq.core.domain.configuration.Configuration;
 import org.rhq.core.domain.measurement.AvailabilityType;
 import org.rhq.core.domain.measurement.MeasurementDataNumeric;
@@ -147,12 +148,11 @@ public class WorkerComponent implements ResourceComponent, MeasurementFacet {
                 ProcessInfo processInfo = new ProcessInfo(pid);
                 ProcCpu cpu = processInfo.priorSnaphot().getCpu();
 
-                report.addData(new MeasurementDataNumeric(request, Double.parseDouble("" + cpu.getTotal())));
+                report.addData(new MeasurementDataNumeric(request, cpu.getPercent()));
             } else if ("ram".equals(request.getName())) {
                 ProcessInfo processInfo = new ProcessInfo(pid);
                 ProcMem memory = processInfo.priorSnaphot().getMemory();
-
-                report.addData(new MeasurementDataNumeric(request, Double.parseDouble("" + memory.getSize())));
+                report.addData(new MeasurementDataNumeric(request, Double.parseDouble("" + (memory.getSize() / 1024))));
             }
         }
 
