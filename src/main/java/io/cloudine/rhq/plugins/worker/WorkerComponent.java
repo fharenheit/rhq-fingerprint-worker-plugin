@@ -87,7 +87,7 @@ public class WorkerComponent implements ResourceComponent, MeasurementFacet {
         long pid = 0;
         try {
             String pidString = ResourceUtils.getResourceTextContents(resource);
-            pid = Long.parseLong(pidString);
+            pid = Long.parseLong(pidString.trim());
         } catch (IOException e) {
             throw new InvalidPluginConfigurationException("Unable to load process id file", e);
         }
