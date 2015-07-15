@@ -19,24 +19,26 @@ import org.rhq.core.pluginapi.inventory.ResourceContext;
 import org.rhq.core.pluginapi.measurement.MeasurementFacet;
 import org.rhq.core.pluginapi.plugin.PluginContext;
 import org.rhq.core.system.ProcessInfo;
+import org.springframework.core.io.FileSystemResource;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
 import java.util.Set;
 
 public class WorkerComponent implements ResourceComponent, MeasurementFacet {
 
     private static final Log LOG = LogFactory.getLog(WorkerComponent.class);
 
-    private String name;
-    private String host;
-    private String username;
-    private String password;
-    private String keyspace;
-    private String port;
-    private String pid;
-
     private CassandraHandler handler;
 
+    private ResourceContext resourceContext;
+
+    private PluginContext pluginContext;
+
     public void initialize(PluginContext context) throws Exception {
+        this.pluginContext = context;
         LOG.info("Initialized Worker.");
     }
 
@@ -45,30 +47,30 @@ public class WorkerComponent implements ResourceComponent, MeasurementFacet {
     }
 
     public AvailabilityType getAvailability() {
-        return AvailabilityType.UP;
+        try {
+            Configuration conf = resourceContext.getPluginConfiguration();
+            String pidfile = conf.getSimpleValue("pidfile");
+
+            FileSystemResource resource = new FileSystemResource(pidfile);
+            long pid = 0;
+            try {
+                String pidString = ResourceUtils.getResourceTextContents(resource);
+                pid = Long.parseLong(pidString);
+            } catch (IOException e) {
+                throw new InvalidPluginConfigurationException("Unable to load process id file", e);
+            }
+
+            ProcessInfo pinfo = new ProcessInfo(pid);
+            return pinfo.priorSnaphot().isRunning() ? AvailabilityType.UP : AvailabilityType.DOWN;
+        } catch (Exception ex) {
+            return AvailabilityType.DOWN;
+        }
     }
 
     public void start(ResourceContext context) throws InvalidPluginConfigurationException, Exception {
+        this.resourceContext = context;
+
         LOG.info("Started Worker.");
-
-        Configuration conf = context.getPluginConfiguration();
-
-        this.pid = conf.getSimpleValue("pid");
-        this.name = conf.getSimpleValue("name");
-        this.host = conf.getSimpleValue("host");
-        this.port = conf.getSimpleValue("port");
-        this.username = conf.getSimpleValue("username");
-        this.password = conf.getSimpleValue("password");
-        this.keyspace = conf.getSimpleValue("keyspace");
-
-        LOG.info("[Component] =======================================");
-        LOG.info("name: " + name);
-        LOG.info("host: " + host);
-        LOG.info("port: " + port);
-        LOG.info("username: " + username);
-        LOG.info("password: " + password);
-        LOG.info("keyspace: " + keyspace);
-        LOG.info("[Component] =======================================");
     }
 
     public void stop() {
@@ -76,6 +78,37 @@ public class WorkerComponent implements ResourceComponent, MeasurementFacet {
     }
 
     public void getValues(MeasurementReport report, Set<MeasurementScheduleRequest> metrics) throws Exception {
+        Configuration conf = resourceContext.getPluginConfiguration();
+
+        String pidfile = conf.getSimpleValue("pidfile");
+        String propertiesfile = conf.getSimpleValue("propertiesfile");
+
+        FileSystemResource resource = new FileSystemResource(pidfile);
+        long pid = 0;
+        try {
+            String pidString = ResourceUtils.getResourceTextContents(resource);
+            pid = Long.parseLong(pidString);
+        } catch (IOException e) {
+            throw new InvalidPluginConfigurationException("Unable to load process id file", e);
+        }
+
+        Properties props = new Properties();
+        try {
+            File propertiesFile = new File(propertiesfile);
+            props.load(new FileInputStream(propertiesFile));
+        } catch (Exception e) {
+            throw new InvalidPluginConfigurationException("Unable to load process properties file", e);
+        }
+
+        String name = conf.getSimpleValue("name");
+        String host = props.getProperty(name + "." + "host");
+        String port = props.getProperty(name + "." + "port");
+        String keyspace = props.getProperty(name + "." + "keyspace");
+        String username = props.getProperty(name + "." + "username");
+        String password = props.getProperty(name + "." + "password");
+        String key = "" + (host + port + keyspace).hashCode();
+
+
         LOG.info("[Values] ---------------------------------------");
         LOG.info("name: " + name);
         LOG.info("host: " + host);
@@ -111,12 +144,12 @@ public class WorkerComponent implements ResourceComponent, MeasurementFacet {
 
                 report.addData(new MeasurementDataNumeric(request, Double.parseDouble("" + expected)));
             } else if ("cpu".equals(request.getName())) {
-                ProcessInfo processInfo = new ProcessInfo(Long.parseLong(pid));
+                ProcessInfo processInfo = new ProcessInfo(pid);
                 ProcCpu cpu = processInfo.priorSnaphot().getCpu();
 
                 report.addData(new MeasurementDataNumeric(request, Double.parseDouble("" + cpu.getTotal())));
             } else if ("ram".equals(request.getName())) {
-                ProcessInfo processInfo = new ProcessInfo(Long.parseLong(pid));
+                ProcessInfo processInfo = new ProcessInfo(pid);
                 ProcMem memory = processInfo.priorSnaphot().getMemory();
 
                 report.addData(new MeasurementDataNumeric(request, Double.parseDouble("" + memory.getSize())));

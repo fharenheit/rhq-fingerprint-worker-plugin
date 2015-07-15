@@ -56,14 +56,6 @@ public class WorkerDiscovery implements ResourceDiscoveryComponent, ManualAddFac
         String password = props.getProperty(name + "." + "password");
         String key = "" + (host + port + keyspace).hashCode();
 
-        context.getDefaultPluginConfiguration().setSimpleValue("key", key);
-        context.getDefaultPluginConfiguration().setSimpleValue("pid", String.valueOf(pid));
-        context.getDefaultPluginConfiguration().setSimpleValue("host", host);
-        context.getDefaultPluginConfiguration().setSimpleValue("port", port);
-        context.getDefaultPluginConfiguration().setSimpleValue("keyspace", keyspace);
-        context.getDefaultPluginConfiguration().setSimpleValue("username", username);
-        context.getDefaultPluginConfiguration().setSimpleValue("password", password);
-
         LOG.info("[Manual] =======================================");
         LOG.info("key: " + key);
         LOG.info("name: " + conf.getSimpleValue("name"));
